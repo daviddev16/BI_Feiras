@@ -3,7 +3,17 @@ unit uTelaLogin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+
+  uConexaoBD,
 
   Data.DB, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
@@ -39,22 +49,28 @@ type
     dxBarApplicationMenu1: TdxBarApplicationMenu;
     dxPanel1: TdxPanel;
     dxPanel2: TdxPanel;
-    cxButton1: TcxButton;
+    cxBtnLogar: TcxButton;
     dxSkinController1: TdxSkinController;
     TxUsuario: TLabeledEdit;
     TxSenha: TLabeledEdit;
     TxHost: TLabeledEdit;
     TxDatabase: TLabeledEdit;
     cxLabel1: TcxLabel;
-    procedure cxButton1Click(Sender: TObject);
+    chBxEditarConfig: TCheckBox;
+    procedure cxBtnLogarClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure chBxEditarConfigClick(Sender: TObject);
   private
     { Private declarations }
     fDacConnection: TFDConnection;
+
     procedure ConectarAoBanco;
+    procedure SalvarConfigConexaoBD;
+
   public
     { Public declarations }
     UsuarioLogado: Boolean;
-
+    ConfigConexaoBD: TConfigConexaoBD;
     property DacConnection: TFDConnection read fDacConnection;
   end;
 
@@ -64,6 +80,12 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure TTelaLogin.chBxEditarConfigClick(Sender: TObject);
+begin
+  TxHost.Enabled     := chBxEditarConfig.Checked;
+  TxDatabase.Enabled := chBxEditarConfig.Checked;
+end;
 
 procedure TTelaLogin.ConectarAoBanco;
 begin
@@ -83,14 +105,39 @@ begin
   end;
 end;
 
-procedure TTelaLogin.cxButton1Click(Sender: TObject);
+procedure TTelaLogin.cxBtnLogarClick(Sender: TObject);
 begin
   ConectarAoBanco;
   if UsuarioLogado then
   begin
     ModalResult := mrOk;
+    SalvarConfigConexaoBD;
     CloseModal;
   end;
+end;
+
+procedure TTelaLogin.FormCreate(Sender: TObject);
+begin
+  if TConfigConexaoBD.ExisteConfiguracao then
+  begin
+    TConfigConexaoBD.CarregarConexao(ConfigConexaoBD);
+    TxHost.Text    := ConfigConexaoBD.Host;
+    TxHost.Enabled := False;
+
+    TxDatabase.Text    := ConfigConexaoBD.Database;
+    TxDatabase.Enabled := False;
+  end;
+end;
+
+procedure TTelaLogin.SalvarConfigConexaoBD;
+begin
+  if not Assigned(ConfigConexaoBD)
+    then ConfigConexaoBD := TConfigConexaoBD.Create;
+
+  ConfigConexaoBD.Host     := TxHost.Text;
+  ConfigConexaoBD.Database := TxDatabase.Text;
+
+  TConfigConexaoBD.SalvarConexao(ConfigConexaoBD);
 end;
 
 end.

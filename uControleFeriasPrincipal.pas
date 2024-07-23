@@ -14,7 +14,9 @@ uses
   Dialogs,
 
   uTelaLogin,
+  uCadastroProjeto,
   uGerenciadorMigracaoBD,
+  uCadastroPeriodoFerias,
   uMigracoesBD,
   uUtilitarios,
 
@@ -83,10 +85,23 @@ uses
   cxButtons,
   dxMessageDialog,
   dxBarBuiltInMenu,
-  cxPC, cxContainer, cxLabel, cxTextEdit, cxMaskEdit, cxDropDownEdit, cxDBEdit,
-  cxLookupEdit, cxDBLookupEdit, cxDBLookupComboBox, cxGroupBox,
-  System.ImageList, Vcl.ImgList, cxImageList, dxGDIPlusClasses,
-  dxSkinOffice2010Blue, cxMemo;
+  cxPC,
+  cxContainer,
+  cxLabel,
+  cxTextEdit,
+  cxMaskEdit,
+  cxDropDownEdit,
+  cxDBEdit,
+  cxLookupEdit,
+  cxDBLookupEdit,
+  cxDBLookupComboBox,
+  cxGroupBox,
+  System.ImageList,
+  Vcl.ImgList,
+  cxImageList,
+  dxGDIPlusClasses,
+  dxSkinOffice2010Blue,
+  cxMemo;
 
 type
   EStatusAndamentoFerias = (ZERADO, ANDAMENTO, FINALIZADO);
@@ -144,7 +159,7 @@ type
     cxGridPreenchimentoDBTableViewColumn1: TcxGridDBColumn;
     dxBarMgrFerias: TdxBar;
     dxBarLargeButton1: TdxBarLargeButton;
-    dxBarLargeButton2: TdxBarLargeButton;
+    dxBarBtnCadastroProjeto: TdxBarLargeButton;
     cxGridConflitos: TcxGrid;
     cxGridConflitosDBTableView: TcxGridDBTableView;
     tblConfColunaCdChamada: TcxGridDBColumn;
@@ -185,6 +200,8 @@ type
     procedure cxGridConflitosDBTableViewCustomDrawCell(
       Sender: TcxCustomGridTableView; ACanvas: TcxCanvas;
       AViewInfo: TcxGridTableDataCellViewInfo; var ADone: Boolean);
+    procedure dxBarBtnCadastroProjetoClick(Sender: TObject);
+    procedure dxBarLargeButton1Click(Sender: TObject);
     
   private
     { Private declarations }
@@ -192,12 +209,14 @@ type
     Panel3Aberto: Boolean;
 
     DacConnection: TFDConnection;
+    FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias;
 
     procedure InicializarTela;
     procedure CarregarEstadoInicial;
 
     procedure ProcessarDadosGridPrincipal;
     procedure ProcessarDadosGridPreenchimento;
+    procedure AcaoProcessarFiltros;
 
     procedure ProcessarDadosGridConflitos; overload;
     procedure ProcessarDadosGridConflitos(
@@ -215,7 +234,10 @@ type
     function ObterIndiceIconePreenchimento(
     var StatusConflitoFerias: EStatusConflitoFerias): Integer; overload;
 
-    procedure AcaoProcessarFiltros;
+    procedure OnCloseLimparFrmCadastroPeriodoFerias(Sender: TObject; var Action: TCloseAction);
+    procedure OnEventoPeriodoInserido;
+
+    procedure AtualizarFormPeriodoDeFeriasEmSelecao;
 
   public
     { Public declarations }
@@ -506,6 +528,9 @@ begin
   { REPROCESSAR INFORMAÇÕES NA GRID DE CONFLITOS }
   ProcessarDadosGridConflitos;
 
+  { ATUALIZAR FORM AUXILIAR PARA A SELEÇÃO DE
+  PERIODO DE FÉRIAS AO VENDEDOR SELECIONADO }
+  AtualizarFormPeriodoDeFeriasEmSelecao;
 end;
 
 procedure TControleFeriasPrincipal.cxGridPreenchimentoDBTableViewCellClick(
@@ -527,6 +552,7 @@ begin
     end;
 
   end;
+
 end;
 
 
@@ -773,6 +799,66 @@ procedure TControleFeriasPrincipal.cxTxNmVendedorKeyPress(Sender: TObject;
 begin
   if Key = #13
     then cxBtnProcessar.Click;
+
+end;
+
+procedure TControleFeriasPrincipal.dxBarBtnCadastroProjetoClick(
+  Sender: TObject);
+var
+  FrmCadastroProjeto: TFrmCadastroProjeto;
+begin
+  FrmCadastroProjeto := TFrmCadastroProjeto.Create(nil);
+  try
+    FrmCadastroProjeto.ShowModal;
+  finally
+    FrmCadastroProjeto.Free;
+  end;
+end;
+
+procedure TControleFeriasPrincipal.dxBarLargeButton1Click(Sender: TObject);
+begin
+  if Assigned(FrmCadastroPeriodoFerias) then
+  begin
+    Exit;
+  end;
+  FrmCadastroPeriodoFerias := TFrmCadastroPeriodoFerias.Create(nil);
+  FrmCadastroPeriodoFerias.DacConnection := DacConnection;
+
+  { EVENTOS FORM PERIODO }
+  FrmCadastroPeriodoFerias.OnClose := OnCloseLimparFrmCadastroPeriodoFerias;
+  FrmCadastroPeriodoFerias.EventoPeriodoInserido := OnEventoPeriodoInserido;
+
+  FrmCadastroPeriodoFerias.Show;
+  { ATUALIZAR FORM AUXILIAR PARA A SELEÇÃO DE
+  PERIODO DE FÉRIAS AO VENDEDOR SELECIONADO }
+  AtualizarFormPeriodoDeFeriasEmSelecao;
+end;
+
+procedure TControleFeriasPrincipal.OnEventoPeriodoInserido;
+begin
+  AcaoProcessarFiltros;
+end;
+
+procedure TControleFeriasPrincipal.OnCloseLimparFrmCadastroPeriodoFerias(
+  Sender: TObject; var Action: TCloseAction);
+begin
+  if Assigned(FrmCadastroPeriodoFerias) then
+    FreeAndNil(FrmCadastroPeriodoFerias);
+end;
+
+procedure TControleFeriasPrincipal.AtualizarFormPeriodoDeFeriasEmSelecao;
+var
+  CxRecord: TcxCustomGridRecord;
+begin
+  if not Assigned(FrmCadastroPeriodoFerias)
+    then Exit;
+
+  CxRecord := ObterPeriodoSelecionadoPrincipal;
+
+  FrmCadastroPeriodoFerias.AtualizarPessoaSelecionada(
+    VarToStr(CxRecord.Values[tblPrinColunaCdNome.Index]),
+    VarToStr(CxRecord.Values[tblPrinColunaIdPessoa.Index])
+  );
 
 end;
 

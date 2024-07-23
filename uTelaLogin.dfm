@@ -12,6 +12,7 @@ object TelaLogin: TTelaLogin
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poScreenCenter
+  OnCreate = FormCreate
   TextHeight = 15
   object dxPanel1: TdxPanel
     Left = 8
@@ -28,7 +29,7 @@ object TelaLogin: TTelaLogin
       EditLabel.Height = 15
       EditLabel.Caption = 'Host'
       TabOrder = 0
-      Text = '127.0.0.1'
+      Text = ''
     end
     object TxDatabase: TLabeledEdit
       Left = 24
@@ -39,7 +40,7 @@ object TelaLogin: TTelaLogin
       EditLabel.Height = 15
       EditLabel.Caption = 'Database'
       TabOrder = 1
-      Text = 'ALTERDATA_SHOP'
+      Text = ''
     end
     object cxLabel1: TcxLabel
       Left = 16
@@ -57,6 +58,15 @@ object TelaLogin: TTelaLogin
       Height = 49
       Width = 205
     end
+    object chBxEditarConfig: TCheckBox
+      Left = 24
+      Top = 191
+      Width = 153
+      Height = 17
+      Caption = 'Editar Configura'#231#227'o'
+      TabOrder = 3
+      OnClick = chBxEditarConfigClick
+    end
   end
   object dxPanel2: TdxPanel
     Left = 279
@@ -64,14 +74,14 @@ object TelaLogin: TTelaLogin
     Width = 241
     Height = 289
     TabOrder = 1
-    object cxButton1: TcxButton
+    object cxBtnLogar: TcxButton
       Left = 144
       Top = 187
       Width = 75
       Height = 25
       Caption = 'Logar'
       TabOrder = 0
-      OnClick = cxButton1Click
+      OnClick = cxBtnLogarClick
     end
     object TxUsuario: TLabeledEdit
       Left = 16

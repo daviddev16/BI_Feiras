@@ -96,6 +96,9 @@
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <UsePackages>true</UsePackages>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <Icon_MainIcon>ControleFerias2_Icon.ico</Icon_MainIcon>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -113,6 +116,15 @@
         <DCCReference Include="uGerenciadorMigracaoBD.pas"/>
         <DCCReference Include="uBaseMigracaoBD.pas"/>
         <DCCReference Include="uMigracoesBD.pas"/>
+        <DCCReference Include="uConexaoBD.pas"/>
+        <DCCReference Include="uCadastroProjeto.pas">
+            <Form>FrmCadastroProjeto</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="uCadastroPeriodoFerias.pas">
+            <Form>FrmCadastroPeriodoFerias</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -140,6 +152,12 @@
             </Delphi.Personality>
             <Deployment Version="4">
                 <DeployFile LocalName="Win32\Debug\ControleFerias2.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>ControleFerias2.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win32\Release\ControleFerias2.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>ControleFerias2.exe</RemoteName>
                         <Overwrite>true</Overwrite>

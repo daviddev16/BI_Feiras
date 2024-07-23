@@ -9,6 +9,8 @@ uses
   System.Classes,
   System.Variants,
 
+  FireDAC.Stan.Error,
+
   uBaseMigracaoBD;
 
 type
@@ -21,6 +23,7 @@ type
 
       procedure InternoInstalarCbPeriodos(SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
       procedure InternoInstalarCbProjeto(SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
+      procedure InternoInstalarProjetos(SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
       procedure InternoInstalarPessoas(SQLDDL: TStringList; const NomeEsquema: String);
 
   end;
@@ -30,9 +33,7 @@ implementation
 
 function MigracoesControleFerias.VerificarNecessidade: Boolean;
 begin
-  Result :=
-    NOT ExisteTabela('cbperiodos') OR
-    NOT ExisteTabela('cbproj')
+  Result := True;
 end;
 
 {
@@ -45,6 +46,10 @@ procedure MigracoesControleFerias.InternoInstalarCbPeriodos(
 var
   NomeEsquemaTabela: String;
 begin
+
+  if ExisteTabela('cbperiodos')
+    then Exit;
+
   SQLDDL.Clear;
   NomeEsquemaTabela := NomeEsquema + '.cbperiodos';
 
@@ -63,6 +68,33 @@ begin
   AlterarOwnerTabela(NovoOwner, NomeEsquemaTabela);
 end;
 
+procedure MigracoesControleFerias.InternoInstalarProjetos(
+  SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
+var
+  NomeEsquemaTabela: String;
+begin
+
+  if ExisteTabela('projeto')
+    then Exit;
+
+  SQLDDL.Clear;
+  NomeEsquemaTabela := NomeEsquema + '.projeto';
+
+  with SQLDDL do
+  begin
+    Add('CREATE TABLE ' + NomeEsquemaTabela);
+    Add('(');
+    Add('  idprojeto SERIAL NOT NULL,');
+    Add('  nmprojeto VARCHAR(40) NOT NULL,');
+    Add('  dsprojeto VARCHAR(255) NOT NULL,');
+    Add('  CONSTRAINT pk_projetos_idprojeto PRIMARY KEY (idprojeto),');
+    Add('  CONSTRAINT uq_projetos_nmprojeto UNIQUE (nmprojeto)');
+    Add(');');
+  end;
+
+  InstalarTabela(SQLDDL);
+  AlterarOwnerTabela(NovoOwner, NomeEsquemaTabela);
+end;
 {
   INSTALAÇÃO TABELA DE PROJETOS DOS USUÁRIOS
   Nome: cbproj
@@ -73,6 +105,10 @@ procedure MigracoesControleFerias.InternoInstalarCbProjeto(
 var
   NomeEsquemaTabela: String;
 begin
+
+  if ExisteTabela('cbproj')
+    then Exit;
+
   SQLDDL.Clear;
   NomeEsquemaTabela := NomeEsquema + '.cbproj';
 
@@ -104,7 +140,14 @@ begin
     Add('ALTER TABLE ' + NomeEsquemaTabela + ' ADD COLUMN vldiasprevistos INTEGER;');
   end;
 
-  InstalarTabela(SQLDDL);
+  try
+    InstalarTabela(SQLDDL);
+  except
+    on E: EFDDBEngineException do
+    begin {ignorar} end;
+  end;
+
+
   SQLDDL.Clear;
 
   with SQLDDL do
@@ -127,6 +170,7 @@ begin
   try
     InternoInstalarCbPeriodos(SQLDDL, NomeEsquema, NovoOwner);
     InternoInstalarCbProjeto (SQLDDL, NomeEsquema, NovoOwner);
+    InternoInstalarProjetos  (SQLDDL, NomeEsquema, NovoOwner);
     InternoInstalarPessoas   (SQLDDL, NomeEsquema);
   finally
     SQLDDL.Free;
