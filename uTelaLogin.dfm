@@ -2,7 +2,7 @@ object TelaLogin: TTelaLogin
   Left = 0
   Top = 0
   BorderStyle = bsSingle
-  Caption = 'TelaLogin'
+  Caption = 'Login'
   ClientHeight = 306
   ClientWidth = 527
   Color = clBtnFace
@@ -59,13 +59,20 @@ object TelaLogin: TTelaLogin
       Width = 205
     end
     object chBxEditarConfig: TCheckBox
-      Left = 24
-      Top = 191
+      Left = 16
+      Top = 255
       Width = 153
       Height = 17
       Caption = 'Editar Configura'#231#227'o'
       TabOrder = 3
       OnClick = chBxEditarConfigClick
+    end
+    object cmBxSchema: TComboBox
+      Left = 128
+      Top = 188
+      Width = 101
+      Height = 23
+      TabOrder = 4
     end
   end
   object dxPanel2: TdxPanel
@@ -106,50 +113,6 @@ object TelaLogin: TTelaLogin
       TabOrder = 2
       Text = '123456'
     end
-  end
-  object dxBarManager1: TdxBarManager
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -12
-    Font.Name = 'Segoe UI'
-    Font.Style = []
-    Categories.Strings = (
-      'Default')
-    Categories.ItemsVisibles = (
-      2)
-    Categories.Visibles = (
-      True)
-    PopupMenuLinks = <>
-    UseSystemFont = True
-    Left = 200
-    PixelsPerInch = 96
-    object dxBarManager1Bar1: TdxBar
-      Caption = 'Quick Access Toolbar'
-      CaptionButtons = <>
-      DockedDockingStyle = dsNone
-      DockedLeft = 0
-      DockedTop = 0
-      DockingStyle = dsNone
-      FloatLeft = 0
-      FloatTop = 0
-      FloatClientWidth = 51
-      FloatClientHeight = 22
-      ItemLinks = <>
-      OneOnRow = True
-      Row = 0
-      UseOwnFont = False
-      Visible = False
-      WholeRow = False
-    end
-  end
-  object dxBarApplicationMenu1: TdxBarApplicationMenu
-    BarManager = dxBarManager1
-    Buttons = <>
-    ExtraPane.Items = <>
-    ItemLinks = <>
-    UseOwnFont = False
-    Left = 416
-    PixelsPerInch = 96
   end
   object dxSkinController1: TdxSkinController
     NativeStyle = False

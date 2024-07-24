@@ -12,12 +12,14 @@ type
     const REGKEY_PATH = 'SOFTWARE\ControleFerias\Conexao';
 
     private
-      fHost : String;
-      fDatabaseName : String;
+      fHost: String;
+      fDatabaseName: String;
+      fSchemaIndex: Integer;
 
     public
-      property Host : String read fHost write fHost;
-      property Database : String read fDatabaseName write fDatabaseName;
+      property Host: String read fHost write fHost;
+      property Database: String read fDatabaseName write fDatabaseName;
+      property SchemaIndex: Integer read fSchemaIndex write fSchemaIndex;
 
       class function CarregarConexao(out fdDbConn: TConfigConexaoBD): Boolean;
       class procedure SalvarConexao(fdDbConn: TConfigConexaoBD);
@@ -62,6 +64,7 @@ begin
         begin
           WriteString('Host', fdDbConn.Host);
           WriteString('Database', fdDbConn.Database);
+          WriteInteger('SchemaIndex', fdDbConn.SchemaIndex);
           CloseKey;
         end;
       end;
@@ -92,6 +95,7 @@ begin
           fdDbConn := TConfigConexaoBD.Create;
           fdDbConn.Host := ReadString('Host');
           fdDbConn.Database := ReadString('Database');
+          fdDbConn.SchemaIndex := ReadInteger('SchemaIndex');
           Result := True;
           CloseKey;
         end;

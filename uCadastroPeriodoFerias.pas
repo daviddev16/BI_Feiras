@@ -6,11 +6,15 @@ uses
   Windows,
   Messages,
   SysUtils,
+  System.Types,
   Variants,
   Classes,
   Graphics,
+  DateUtils,
   Controls,
   Forms,
+
+  uUtilitarios,
 
   Dialogs,
   FireDAC.Stan.Intf,
@@ -94,8 +98,14 @@ uses
   Vcl.StdCtrls,
   dxWheelPicker,
   dxNumericWheelPicker,
-  dxDateTimeWheelPicker, Vcl.ComCtrls, Data.Bind.EngExt, Vcl.Bind.DBEngExt,
-  System.Rtti, System.Bindings.Outputs, Vcl.Bind.Editors, Data.Bind.Components;
+  dxDateTimeWheelPicker,
+  Vcl.ComCtrls,
+  Data.Bind.EngExt,
+  Vcl.Bind.DBEngExt,
+  System.Rtti,
+  System.Bindings.Outputs,
+  Vcl.Bind.Editors,
+  Data.Bind.Components;
 
 type
   TEventoPeriodoInserido = procedure() of object;
@@ -105,17 +115,18 @@ type
     dxWheelDataInicio: TdxDateTimeWheelPicker;
     GroupBox1: TGroupBox;
     dxWheelDataFinal: TdxDateTimeWheelPicker;
-    cxButton1: TcxButton;
+    cxBtnAdicionarPeriodo: TcxButton;
     dtPickerDataInicio: TDateTimePicker;
     dtPickerDataFinal: TDateTimePicker;
     cxLabel1: TcxLabel;
     cxLabel2: TcxLabel;
     BindingsList1: TBindingsList;
-    procedure cxButton1Click(Sender: TObject);
+    procedure cxBtnAdicionarPeriodoClick(Sender: TObject);
     procedure dxWheelDataFinalPropertiesChange(Sender: TObject);
     procedure dtPickerDataFinalChange(Sender: TObject);
     procedure dxWheelDataInicioPropertiesChange(Sender: TObject);
     procedure dtPickerDataInicioChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     fIdPessoaSelecionado, fNmPessoaSelecionado: String;
     { Private declarations }
@@ -123,6 +134,9 @@ type
   public
     DacConnection: TFDConnection;
     EventoPeriodoInserido: TEventoPeriodoInserido;
+
+    function ObterValorDiasPrevistos(const IdPessoa: String): Integer;
+    function ObterValorFeriasComputadas(const IdPessoa: String): Integer;
 
     procedure AtualizarPessoaSelecionada(const NomePessoa, IdPessoa: String);
     procedure InserirPeriodoDeFeriasSelecionado;
@@ -145,27 +159,68 @@ begin
   GroupBox1.Update;
 end;
 
-procedure TFrmCadastroPeriodoFerias.cxButton1Click(Sender: TObject);
+procedure TFrmCadastroPeriodoFerias.cxBtnAdicionarPeriodoClick(Sender: TObject);
 var
+  {PARA VERIFICAR OS CONFLITOS}
   DtInicioConflito, DtFinalConflito: TDateTime;
+  { VALORES DAS DATAS SELECIONADAS }
+  DtInicio, DtFinal: TDate;
+  { VALORES COMPUTADOS DO VENDEDOR }
+  VlDiasPrevistos: Integer;
+  VlFeriasJaComputado: Integer;
 begin
-  if VerificarAutoColapso(DtInicioConflito, DtFinalConflito) then
+
+  DtInicio := dxWheelDataInicio.DateTime;
+  DtFinal  := dxWheelDataFinal.DateTime;
+
+  { NÃO PERMITIR FERIAS COM MENOS DE UMA SEMANA}
+  if DaysBetween(DtInicio, DtFinal) < 7 then
   begin
-    dxMessageDlg(
-      'Período informado conflita com: ' +
-      FormatDateTime('dd/mm/yyyy', DtInicioConflito) + ' até ' +
-      FormatDateTime('dd/mm/yyyy', DtFinalConflito) + ' do mesmo vendedor. ' +
-      'Tente novamente!',
-      TMsgDlgType.mtError,
-      [TMsgDlgBtn.mbRetry], 0);
+    TUtilitarios.MensagemErroRapido(
+      'O intervalo entre a data inicial e final deve ser de no mínimo 7 dias.');
     Exit;
   end;
 
-  InserirPeriodoDeFeriasSelecionado;
-  dxMessageDlg(
-    'Período cadastrado para ' + fNmPessoaSelecionado + ' !',
-    TMsgDlgType.mtInformation,
-    [TMsgDlgBtn.mbOK], 0);
+  {NÃO PERMITIR DATA INICIAL MAIOR QUE A FINAL}
+  if CompareDate(DtInicio, DtFinal) = GreaterThanValue then
+  begin
+    TUtilitarios.MensagemErroRapido(
+      'A data inicial não pode ser maior que a data final.');
+    Exit;
+  end;
+
+
+  { VALIDAR DATA DENTRO DOS DIAS PREVISTOS }
+  VlDiasPrevistos     := ObterValorDiasPrevistos(fIdPessoaSelecionado);
+  VlFeriasJaComputado := ObterValorFeriasComputadas(fIdPessoaSelecionado);
+
+  if (VlFeriasJaComputado + DaysBetween(DtInicio,DtFinal)) > VlDiasPrevistos then
+  begin
+    TUtilitarios.MensagemErroRapido(
+      'O período informado somado a quantidade de dias já preenchidos ' +
+      'para este vendedor, supera seu valor de dias previstos.');
+    Exit;
+  end;
+
+
+  {VERIFICA SE NÃO COLAPSA COM OS PROPRIOS PERIODOS DO VENDEDOR}
+  if VerificarAutoColapso(DtInicioConflito, DtFinalConflito) then
+  begin
+    TUtilitarios.MensagemErroRapido(
+      'Período informado conflita com: ' +
+      FormatDateTime('dd/mm/yyyy', DtInicioConflito) + ' até ' +
+      FormatDateTime('dd/mm/yyyy', DtFinalConflito) + ' do mesmo vendedor. ' +
+      'Tente novamente!');
+    Exit;
+  end;
+
+  try
+    InserirPeriodoDeFeriasSelecionado;
+  finally
+    TUtilitarios.MensagemInformativaRapida(
+      'Período cadastrado para ' + fNmPessoaSelecionado + ' !');
+  end;
+
 end;
 
 procedure TFrmCadastroPeriodoFerias.InserirPeriodoDeFeriasSelecionado;
@@ -183,9 +238,9 @@ begin
       Add('  VALUES (:paramIdPessoa, :paramDtInicio, :paramDtFinal);');
     end;
 
-    FdQuery.ParamByName('paramIdPessoa').AsString   := fIdPessoaSelecionado;
-    FdQuery.ParamByName('paramDtInicio').AsDateTime := dxWheelDataInicio.DateTime;
-    FdQuery.ParamByName('paramDtFinal').AsDateTime  := dxWheelDataFinal.DateTime;
+    FdQuery.ParamByName('paramIdPessoa').AsString := fIdPessoaSelecionado;
+    FdQuery.ParamByName('paramDtInicio').AsDate   := TDate(dxWheelDataInicio.DateTime);
+    FdQuery.ParamByName('paramDtFinal').AsDate    := TDate(dxWheelDataFinal.DateTime);
 
     FdQuery.Connection := DacConnection;
     FdQuery.ExecSQL;
@@ -197,6 +252,7 @@ begin
     FdQuery.Free;
   end;
 end;
+
 function TFrmCadastroPeriodoFerias.VerificarAutoColapso(
   out DtInicioConflito, DtFinalConflito: TDateTime): Boolean;
 var
@@ -237,6 +293,78 @@ begin
   end;
 end;
 
+function TFrmCadastroPeriodoFerias.ObterValorDiasPrevistos(
+  const IdPessoa: String): Integer;
+var
+  FdQuery: TFDQuery;
+begin
+  Result := 30; {PADRÃO}
+  FdQuery := TFDQuery.Create(nil);
+  try
+    with FdQuery.SQL do
+    begin
+      Add('SELECT ');
+      Add('   VlDiasPrevistos ');
+      Add('FROM ');
+      Add('   pessoas ');
+      Add('WHERE');
+      Add('   IdPessoa = :paramIdPessoa ');
+      Add('LIMIT 1');
+    end;
+
+    FdQuery.ParamByName('paramIdPessoa').AsString := IdPessoa;
+
+    FdQuery.Connection := DacConnection;
+    FdQuery.Active     := True;
+
+    while not FdQuery.Eof do
+    begin
+      Result := FdQuery.FieldByName('VlDiasPrevistos').AsInteger;
+      FdQuery.Next;
+    end;
+
+  finally
+    FdQuery.Free;
+  end;
+end;
+
+function TFrmCadastroPeriodoFerias.ObterValorFeriasComputadas(
+  const IdPessoa: String): Integer;
+var
+  FdQuery: TFDQuery;
+begin
+  Result := 0;
+  FdQuery := TFDQuery.Create(nil);
+  try
+    with FdQuery.SQL do
+    begin
+      Add('SELECT ');
+      Add('   CAST(COALESCE(SUM(EXTRACT(EPOCH FROM (dtfinal - dtinicio)) ' +
+          '/ 86400), ''0'') AS INTEGER) AS "VlComputado" ');
+      Add('FROM ');
+      Add('   cbperiodos ');
+      Add('WHERE');
+      Add('   IdPessoa = :paramIdPessoa ');
+      Add('GROUP BY ');
+      Add('   IdPessoa;');
+    end;
+
+    FdQuery.ParamByName('paramIdPessoa').AsString := IdPessoa;
+
+    FdQuery.Connection := DacConnection;
+    FdQuery.Active     := True;
+
+    while not FdQuery.Eof do
+    begin
+      Result := FdQuery.FieldByName('VlComputado').AsInteger;
+      FdQuery.Next;
+    end;
+
+  finally
+    FdQuery.Free;
+  end;
+end;
+
 procedure TFrmCadastroPeriodoFerias.dtPickerDataFinalChange(Sender: TObject);
 begin
   dxWheelDataFinal.DateTime := dtPickerDataFinal.DateTime;
@@ -259,6 +387,10 @@ begin
   dtPickerDataInicio.DateTime := dxWheelDataInicio.DateTime;
 end;
 
-
+procedure TFrmCadastroPeriodoFerias.FormCreate(Sender: TObject);
+begin
+  dxWheelDataFinal.DateTime  := dtPickerDataFinal.DateTime;
+  dxWheelDataInicio.DateTime := dtPickerDataInicio.DateTime;
+end;
 
 end.

@@ -6,6 +6,7 @@ uses
   Windows,
   Messages,
   SysUtils,
+  DateUtils,
   Variants,
   Classes,
   Graphics,
@@ -18,6 +19,7 @@ uses
   uGerenciadorMigracaoBD,
   uCadastroPeriodoFerias,
   uMigracoesBD,
+  uConexaoBD,
   uUtilitarios,
 
   FireDAC.Stan.Intf,
@@ -101,7 +103,7 @@ uses
   cxImageList,
   dxGDIPlusClasses,
   dxSkinOffice2010Blue,
-  cxMemo;
+  cxMemo, cxCalendar;
 
 type
   EStatusAndamentoFerias = (ZERADO, ANDAMENTO, FINALIZADO);
@@ -117,7 +119,6 @@ type
     dxTabInicio: TdxRibbonTab;
     dxRibbonStatusBar: TdxRibbonStatusBar;
     dxSkinController1: TdxSkinController;
-    dxBarMgrCadastros: TdxBar;
     dxPanel1: TdxPanel;
     dxPanel2: TdxPanel;
     Splitter1: TSplitter;
@@ -128,7 +129,6 @@ type
     cxGridPreenchimentoLevel: TcxGridLevel;
     cxGridPreenchimento: TcxGrid;
     dxPanel3: TdxPanel;
-    SpeedButton1: TSpeedButton;
     tblPrinColunaIdPessoa: TcxGridDBColumn;
     tblPrinColunaCdPessoa: TcxGridDBColumn;
     tblPrinColunaCdNome: TcxGridDBColumn;
@@ -158,7 +158,7 @@ type
     cxImageList: TcxImageList;
     cxGridPreenchimentoDBTableViewColumn1: TcxGridDBColumn;
     dxBarMgrFerias: TdxBar;
-    dxBarLargeButton1: TdxBarLargeButton;
+    dxBarBtnCadastroFerias: TdxBarLargeButton;
     dxBarBtnCadastroProjeto: TdxBarLargeButton;
     cxGridConflitos: TcxGrid;
     cxGridConflitosDBTableView: TcxGridDBTableView;
@@ -177,12 +177,17 @@ type
     chBxSemPeriodoGradePreencimento: TCheckBox;
     gpBxOutros: TGroupBox;
     chBxEsconderVendedoresPeriodoCompleto: TCheckBox;
+    dxBarBtnVendedores: TdxBarLargeButton;
+    dxBarBtnCaracteristicas: TdxBarLargeButton;
+    tblPrinColunaLsCar: TcxGridDBColumn;
+    dxBarBtnExcluirPeriodoSelec: TdxBarLargeButton;
+    dxBarBtnEditarDiasPrevistos: TdxBarLargeButton;
+    chBxAutoExpandirGrupos: TCheckBox;
+    dxBarBtnSair: TdxBarLargeButton;
+    dxBarManager1Bar1: TdxBar;
+    dxBarBtnExcluirTodosPeriodos: TdxBarLargeButton;
+    chBxNaoResumirCrc: TCheckBox;
     procedure FormCreate(Sender: TObject);
-    procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer;
-      var Accept: Boolean);
-    procedure Splitter1Moved(Sender: TObject);
-    procedure FormResize(Sender: TObject);
-    procedure SpeedButton1Click(Sender: TObject);
     procedure cxGridPreenchimentoDBTableViewCustomDrawCell(
       Sender: TcxCustomGridTableView; ACanvas: TcxCanvas;
       AViewInfo: TcxGridTableDataCellViewInfo; var ADone: Boolean);
@@ -201,13 +206,16 @@ type
       Sender: TcxCustomGridTableView; ACanvas: TcxCanvas;
       AViewInfo: TcxGridTableDataCellViewInfo; var ADone: Boolean);
     procedure dxBarBtnCadastroProjetoClick(Sender: TObject);
-    procedure dxBarLargeButton1Click(Sender: TObject);
+    procedure dxBarBtnCadastroFeriasClick(Sender: TObject);
+    procedure dxBarBtnVendedoresClick(Sender: TObject);
+    procedure dxBarBtnCaracteristicasClick(Sender: TObject);
+    procedure dxBarBtnExcluirPeriodoSelecClick(Sender: TObject);
+    procedure dxBarBtnEditarDiasPrevistosClick(Sender: TObject);
+    procedure dxBarBtnSairClick(Sender: TObject);
+    procedure dxBarBtnExcluirTodosPeriodosClick(Sender: TObject);
     
   private
     { Private declarations }
-    VlPanel3Inicial, init2, init3 : Integer;
-    Panel3Aberto: Boolean;
-
     DacConnection: TFDConnection;
     FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias;
 
@@ -222,10 +230,10 @@ type
     procedure ProcessarDadosGridConflitos(
       const IdPessoa: String; var DtInicio, DtFinal: TDateTime); overload;
 
-    procedure InicializarBancoDeDados(const Host, Database: String);
+    procedure InicializarBancoDeDados(const Host, Database, Esquema: String);
 
     function ObterPeriodoSelecionadoPrincipal: TcxCustomGridRecord;
-
+    function ObterValorNatural(const Msg: String; const VlMinimo: Integer): Integer;
     function ObterStatusConflitoFerias(var TextoValidacao: String): EStatusConflitoFerias;
     function ObterColorPreenchimento(var StatusAndamento: EStatusAndamentoFerias): TColor;
 
@@ -238,6 +246,11 @@ type
     procedure OnEventoPeriodoInserido;
 
     procedure AtualizarFormPeriodoDeFeriasEmSelecao;
+
+    procedure RemoverPeriodoDeFerias(const DtInicio, DtFinal: TDateTime; IdPessoa: String);
+    procedure AtualizarDiasPrevistosDe(const IdPessoa: String; NovoVlDiasPrevistos: Integer);
+    procedure LimparTodosPeriodosDeFerias;
+
 
   public
     { Public declarations }
@@ -254,7 +267,7 @@ implementation
 procedure TControleFeriasPrincipal.FormCreate(Sender: TObject);
 var
   TelaLogin: TTelaLogin;
-  NmDatabase, NmHost, NmUsuario: String;
+  NmDatabase, NmHost, NmUsuario, Esquema: String;
 begin
   TelaLogin := TTelaLogin.Create(nil);
   try
@@ -267,64 +280,34 @@ begin
 
     if not Assigned(DacConnection) then
     begin
-      ShowMessage('Não foi possível estabelecer conexão com o banco de dados.');
+      TUtilitarios.MensagemErroRapido('Não foi possível estabelecer conexão com o banco de dados.');
       Application.Terminate;
     end;
 
-    NmUsuario := TelaLogin.TxUsuario.Text;
+    NmUsuario  := TelaLogin.TxUsuario.Text;
+    Esquema    := TelaLogin.cmBxSchema.Text;
+    NmDatabase := TelaLogin.ConfigConexaoBD.Database;
+    NmHost     := TelaLogin.ConfigConexaoBD.Host;
 
     TelaLogin.Free;
-
-    NmDatabase := DacConnection.Params.Values['Database'];
-    NmHost     := DacConnection.Params.Values['Server'];
 
     dxRibbonStatusBar.Panels[0].Text :=
       Format('%s Conectado em %s/%s',
       [NmUsuario, NmDatabase, NmHost]);
 
-    InicializarBancoDeDados(NmHost, NmDatabase);
-
+    InicializarBancoDeDados(NmHost, NmDatabase, Esquema);
     InicializarTela;
+
   end;
 end;
 
-
-
-procedure TControleFeriasPrincipal.SpeedButton1Click(Sender: TObject);
-var
-  dif :integer;
-begin
-  Panel3Aberto := not Panel3Aberto;
-  if not Panel3Aberto then
-  begin
-    dif := 35 - dxPanel3.Width;
-    dxPanel3.Width := 35;
-    cxGridPrincipal.width := init3 + abs(dif);
-  end
-  else
-  begin
-    dif := VlPanel3Inicial - dxPanel3.Width;
-    dxPanel3.Width := VlPanel3Inicial;
-    cxGridPrincipal.width := init3;
-  end;
-  cxGridPrincipal.Left := cxGridPrincipal.Left + dif;
-  cxGridPrincipal.LayoutChanged;
-  pnConteudoOpcoes.Visible := Panel3Aberto;
-  cxLblOpcoes.Visible := Panel3Aberto;
-
-  if Panel3Aberto
-    then SpeedButton1.ImageIndex := 4
-    else SpeedButton1.ImageIndex := 3;
-
-end;
-
-
-procedure TControleFeriasPrincipal.InicializarBancoDeDados(const Host, Database: String);
+procedure TControleFeriasPrincipal.InicializarBancoDeDados(
+  const Host, Database, Esquema: String);
 var
   GenMigracaoBD : TGerenciadorBDMigracao;
 begin
   try
-    GenMigracaoBD := TGerenciadorBDMigracao.Create(Host, Database);
+    GenMigracaoBD := TGerenciadorBDMigracao.Create(Host, Database, Esquema);
     GenMigracaoBD.RegistrarMigracaoBD(MigracoesControleFerias.Create);
     GenMigracaoBD.Inicializar;
   finally
@@ -362,6 +345,37 @@ begin
   case StatusConflitoFerias of
     SEM_CONFLITO: Exit(6);
     COM_CONFLITO: Exit(5);
+  end;
+end;
+
+function TControleFeriasPrincipal.ObterValorNatural(
+  const Msg: String; const VlMinimo: Integer): Integer;
+var
+  TextoInput: String;
+begin
+  while True do
+  begin
+    try
+      TextoInput := InputBox(
+        'Confirmação',
+        Msg + ' (Mínimo: ' + IntToStr(VlMinimo) + ')',
+        '');
+
+        { CASO FECHE O INPUTBOX }
+        if Trim(TextoInput) = '' then
+          Exit(-1);
+
+        Result := StrToInt(TextoInput);
+        if Result >= VlMinimo
+          then Exit;
+
+        TUtilitarios.MensagemErroRapido('Valor inferior ao mínimo. Tente novamente!');
+    except
+      on E: EConvertError do
+      begin
+        TUtilitarios.MensagemErroRapido('Valor inválido. Tente novamente!');
+      end;
+    end;
   end;
 end;
 
@@ -665,9 +679,9 @@ begin
       Add('   CAST(COALESCE(SUM(EXTRACT(EPOCH FROM (dtfinal - dtinicio)) / 86400), ''0'') AS INTEGER) AS totaldiasregistrados,');
       Add('   p.vldiasprevistos');
       Add('FROM');
-      Add('   wshop.pessoas P');
+      Add('   pessoas P');
       Add('LEFT JOIN');
-      Add('   wshop.cbperiodos CBP');
+      Add('   cbperiodos CBP');
       Add('   ON (P.idpessoa = CBP.idpessoa)');
       Add('WHERE');
       Add('   p.stativo = ''S''');
@@ -723,12 +737,19 @@ begin
       Add('   p.idpessoa, ');
       Add('   p.nmpessoa, ');
       Add('   p.cdchamada, ');
-      Add('   cbp.dtinicio AS "dtinicio", ');
-      Add('   cbp.dtfinal AS "dtfinal", ');
+      Add('   CAST(cbp.dtinicio AS DATE) AS "dtinicio", ');
+      Add('   CAST(cbp.dtfinal  AS DATE) AS "dtfinal", ');
       Add('   COALESCE(NULLIF(p.cdempresa, ''''), ''999'') AS "cdempresa", ');
       Add('   COALESCE(es.nmempresa, ''SEM EMPRESA'') AS "nmempresa", ');
       Add('   CAST(p.dtcadastro AS DATE) AS "dtcadastro", ');
-      Add('   COALESCE(ads.nmusuario, ''SEM USUÁRIO'') AS nmusuario ');
+      Add('   COALESCE(ads.nmusuario, ''SEM USUÁRIO'') AS "nmusuario", ');
+
+      { !! particularidades para "expandir" caracteristicas para mais de uma linha na grid !! }
+      if chBxNaoResumirCrc.Checked then
+        Add('   UNNEST(COALESCE(L_J_CPS.caracteristicas, ARRAY[''Sem característica''])) AS "dscaracteristicas" ')
+      else
+        Add('   COALESCE(L_J_CPS.caracteristicas, ''Sem característica'') AS "dscaracteristicas" ');
+
       Add('FROM ');
       Add('   cbperiodos cbp ');
       Add('RIGHT JOIN ');
@@ -740,6 +761,26 @@ begin
       Add('LEFT JOIN ');
       Add('   empshop es ');
       Add('   ON es.cdempresa = p.cdempresa ');
+      { JOIN CARACTERISTICAS }
+      Add('LEFT JOIN (');
+      Add('   SELECT ');
+      Add('      PC.idpessoa,');
+
+      { !! particularidades para "expandir" caracteristicas para mais de uma linha na grid !! }
+      if chBxNaoResumirCrc.Checked then
+        Add('      array_agg(CPS.dscaracpessoa) AS "caracteristicas" ')
+      else
+        Add('      string_agg(CPS.dscaracpessoa, '', '') AS "caracteristicas" ');
+
+      Add('   FROM ');
+      Add('      pesscar PC');
+      Add('   JOIN ');
+      Add('     caracps CPS');
+      Add('     ON (PC.idcaracpessoa = CPS.idcaracpessoa)');
+      Add('   GROUP BY ');
+      Add('     PC.idpessoa) L_J_CPS');
+      Add('   ON (L_J_CPS.idpessoa = p.idpessoa)');
+      { JOIN CARACTERISTICAS }
       Add('WHERE ');
       Add('   p.stativo = ''S'' ');
       Add('   AND p.stvendedor = TRUE');
@@ -765,7 +806,9 @@ begin
     try
       GridDataSource.DataSet := FdQuery;
       cxGridPrincipalDBTableView.DataController.DataSource := GridDataSource;
-      cxGridPrincipalDBTableView.DataController.Groups.FullExpand;
+
+      if chBxAutoExpandirGrupos.Checked then
+        cxGridPrincipalDBTableView.DataController.Groups.FullExpand;
 
     except
       GridDataSource.Free;
@@ -774,6 +817,176 @@ begin
   except
     FdQuery.Free;
     raise;
+  end;
+end;
+
+procedure TControleFeriasPrincipal.dxBarBtnExcluirPeriodoSelecClick(Sender: TObject);
+var
+  CxRecordSelecionado: TcxCustomGridRecord;
+  DtInicio, DtFinal: TDateTime;
+  IdPessoa, NmPessoa: String;
+  RetornoConfirmacao: Integer;
+begin
+  CxRecordSelecionado := ObterPeriodoSelecionadoPrincipal;
+  IdPessoa := CxRecordSelecionado.Values[tblPrinColunaIdPessoa.Index];
+  NmPessoa := CxRecordSelecionado.Values[tblPrinColunaCdNome.Index];
+  DtInicio := CxRecordSelecionado.Values[tblPrinColunaDtInicio.Index];
+  DtFinal  := CxRecordSelecionado.Values[tblPrinColunaDtFinal.Index];
+
+  { PROVAVEL QUE SEJA GRUPO SELECIONADO }
+  if not (CxRecordSelecionado.IsData) then
+    Exit;
+
+  if (Trim(IdPessoa) = '') or not
+     (TUtilitarios.EhDataValida(DtInicio) and TUtilitarios.EhDataValida(DtFinal))
+    then Exit;
+
+  RetornoConfirmacao :=
+    dxMessageDlg(
+      'Realmente deseja excluir este período?' + sLineBreak +
+      'De: '  + FormatDateTime('dd/mm/yyyy', DtInicio) + sLineBreak +
+      'Até: ' + FormatDateTime('dd/mm/yyyy', DtFinal)  + sLineBreak +
+      'Vendedor: ' + NmPessoa,
+      TMsgDlgType.mtWarning,
+      [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbCancel, TMsgDlgBtn.mbCancel],
+      0);
+
+  { CANCELAR OPERAÇÃO }
+  if RetornoConfirmacao <> IDYES
+    then Exit;
+
+  RemoverPeriodoDeFerias(DtInicio, DtFinal, IdPessoa);
+  TUtilitarios.MensagemInformativaRapida('Exclusão de período concluída.');
+
+  AcaoProcessarFiltros;
+
+end;
+
+procedure TControleFeriasPrincipal.dxBarBtnExcluirTodosPeriodosClick(
+  Sender: TObject);
+var
+  RetornoConfirmacao: Integer;
+begin
+  RetornoConfirmacao := dxMessageDlg(
+    'Essa operação exclui todos os períodos de férias de' +
+    ' todos os vendedores, confirmar operação?',
+    TMsgDlgType.mtWarning,
+    [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbAbort], 0);
+
+  { CANCELAR OPERAÇÃO }
+  if RetornoConfirmacao <> IDYES
+    then Exit;
+
+  LimparTodosPeriodosDeFerias;
+  AcaoProcessarFiltros;
+
+end;
+
+procedure TControleFeriasPrincipal.dxBarBtnSairClick(Sender: TObject);
+begin
+  Application.Terminate;
+end;
+
+procedure TControleFeriasPrincipal.dxBarBtnEditarDiasPrevistosClick(Sender: TObject);
+var
+  CxRecordSelecionado: TcxCustomGridRecord;
+  IdPessoa, NmPessoa: String;
+  NovoVlDiasPrevistos: Integer;
+begin
+  CxRecordSelecionado := ObterPeriodoSelecionadoPrincipal;
+  IdPessoa := CxRecordSelecionado.Values[tblPrinColunaIdPessoa.Index];
+  NmPessoa := CxRecordSelecionado.Values[tblPrinColunaCdNome.Index];
+
+  { PROVAVEL QUE SEJA GRUPO SELECIONADO }
+  if not (CxRecordSelecionado.IsData) then
+    Exit;
+
+  if (Trim(IdPessoa) = '')
+    then Exit;
+
+  NovoVlDiasPrevistos := ObterValorNatural('Informe os dias previstos', 30);
+
+  if (NovoVlDiasPrevistos = -1)
+    then Exit;
+
+  AtualizarDiasPrevistosDe(IdPessoa, NovoVlDiasPrevistos);
+  AcaoProcessarFiltros;
+
+end;
+
+procedure TControleFeriasPrincipal.LimparTodosPeriodosDeFerias;
+var
+  FdQuery: TFDQuery;
+begin
+  FdQuery := TFdQuery.Create(nil);
+  try
+    with FdQuery.SQL do
+    begin
+      Add('TRUNCATE TABLE cbperiodos; ');
+    end;
+
+    FdQuery.Connection := DacConnection;
+    FdQuery.ExecSQL;
+
+  finally
+    FdQuery.Free;
+  end;
+end;
+
+procedure TControleFeriasPrincipal.AtualizarDiasPrevistosDe(
+  const IdPessoa: String; NovoVlDiasPrevistos: Integer);
+var
+  FdQuery: TFDQuery;
+begin
+  FdQuery := TFdQuery.Create(nil);
+  try
+    with FdQuery.SQL do
+    begin
+      Add('UPDATE ');
+      Add('   pessoas ');
+      Add('SET ');
+      Add('   vldiasprevistos = :paramNovoDiasPrevistos ');
+      Add('WHERE');
+      Add('   IdPessoa = :paramIdPessoa');
+    end;
+
+    FdQuery.ParamByName('paramIdPessoa').AsString           := IdPessoa;
+    FdQuery.ParamByName('paramNovoDiasPrevistos').AsInteger := NovoVlDiasPrevistos;
+
+    FdQuery.Connection := DacConnection;
+    FdQuery.ExecSQL;
+
+  finally
+    FdQuery.Free;
+  end;
+end;
+
+procedure TControleFeriasPrincipal.RemoverPeriodoDeFerias(
+  const DtInicio, DtFinal: TDateTime; IdPessoa: String);
+var
+  FdQuery: TFDQuery;
+begin
+  FdQuery := TFdQuery.Create(nil);
+  try
+    with FdQuery.SQL do
+    begin
+      Add('DELETE FROM ');
+      Add('   cbperiodos ');
+      Add('WHERE');
+      Add('   IdPessoa = :paramIdPessoa');
+      Add('   AND DtInicio = :paramDtInicio');
+      Add('   AND DtFinal = :paramDtFinal');
+    end;
+
+    FdQuery.ParamByName('paramIdPessoa').AsString   := IdPessoa;
+    FdQuery.ParamByName('paramDtInicio').AsDateTime := DtInicio;
+    FdQuery.ParamByName('paramDtFinal').AsDateTime  := DtFinal;
+
+    FdQuery.Connection := DacConnection;
+    FdQuery.ExecSQL;
+
+  finally
+    FdQuery.Free;
   end;
 end;
 
@@ -788,18 +1001,12 @@ begin
   ProcessarDadosGridPreenchimento;
 end;
 
-procedure TControleFeriasPrincipal.Splitter1CanResize(Sender: TObject; var NewSize: Integer;
-  var Accept: Boolean);
-begin
-  Accept := Panel3Aberto;
-end;
 
 procedure TControleFeriasPrincipal.cxTxNmVendedorKeyPress(Sender: TObject;
   var Key: Char);
 begin
   if Key = #13
     then cxBtnProcessar.Click;
-
 end;
 
 procedure TControleFeriasPrincipal.dxBarBtnCadastroProjetoClick(
@@ -815,12 +1022,13 @@ begin
   end;
 end;
 
-procedure TControleFeriasPrincipal.dxBarLargeButton1Click(Sender: TObject);
+procedure TControleFeriasPrincipal.dxBarBtnCadastroFeriasClick(Sender: TObject);
 begin
-  if Assigned(FrmCadastroPeriodoFerias) then
-  begin
-    Exit;
-  end;
+
+  if (Assigned(FrmCadastroPeriodoFerias)) or not
+     (ObterPeriodoSelecionadoPrincipal.IsData)
+    then Exit;
+
   FrmCadastroPeriodoFerias := TFrmCadastroPeriodoFerias.Create(nil);
   FrmCadastroPeriodoFerias.DacConnection := DacConnection;
 
@@ -832,6 +1040,16 @@ begin
   { ATUALIZAR FORM AUXILIAR PARA A SELEÇÃO DE
   PERIODO DE FÉRIAS AO VENDEDOR SELECIONADO }
   AtualizarFormPeriodoDeFeriasEmSelecao;
+end;
+
+procedure TControleFeriasPrincipal.dxBarBtnVendedoresClick(Sender: TObject);
+begin
+  TUtilitarios.MensagemErroRapido('Só é possível abrir este módulo pelo Shop.');
+end;
+
+procedure TControleFeriasPrincipal.dxBarBtnCaracteristicasClick(Sender: TObject);
+begin
+  TUtilitarios.MensagemErroRapido('Só é possível abrir este módulo pelo Shop.');
 end;
 
 procedure TControleFeriasPrincipal.OnEventoPeriodoInserido;
@@ -850,10 +1068,13 @@ procedure TControleFeriasPrincipal.AtualizarFormPeriodoDeFeriasEmSelecao;
 var
   CxRecord: TcxCustomGridRecord;
 begin
-  if not Assigned(FrmCadastroPeriodoFerias)
+  if not (Assigned(FrmCadastroPeriodoFerias))
     then Exit;
 
   CxRecord := ObterPeriodoSelecionadoPrincipal;
+
+  if not (CxRecord.IsData) then
+    Exit;
 
   FrmCadastroPeriodoFerias.AtualizarPessoaSelecionada(
     VarToStr(CxRecord.Values[tblPrinColunaCdNome.Index]),
@@ -870,30 +1091,8 @@ begin
   ProcessarDadosGridConflitos;
 end;
 
-procedure TControleFeriasPrincipal.FormResize(Sender: TObject);
-begin
-  init2 := cxGridPrincipal.Left;
-  init3 := cxGridPrincipal.Width;
-end;
-
-procedure TControleFeriasPrincipal.Splitter1Moved(Sender: TObject);
-begin
-  if not Panel3Aberto then Exit;
-  init2 := cxGridPrincipal.Left;
-  init3 := cxGridPrincipal.Width;
-end;
-
 procedure TControleFeriasPrincipal.InicializarTela;
 begin
-  Constraints.MinHeight := 800;
-  Constraints.MinWidth  := 600;
-  Constraints.MaxHeight := 8080;
-  Constraints.MaxWidth  := 1366;
-  VlPanel3Inicial := dxPanel3.Width;
-  Panel3Aberto := True;
-  init2 := cxGridPrincipal.Left;
-  init3 := cxGridPrincipal.Width;
-
   { INICIALIZAR DADOS NAS GRIDS }
   CarregarEstadoInicial;
 end;

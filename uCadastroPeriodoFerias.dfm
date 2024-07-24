@@ -12,6 +12,7 @@ object FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poMainFormCenter
+  OnCreate = FormCreate
   DesignSize = (
     460
     331)
@@ -19,13 +20,13 @@ object FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias
   object GroupBox1: TGroupBox
     Left = 8
     Top = 8
-    Width = 440
+    Width = 432
     Height = 315
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Adicionando per'#237'odo de f'#233'rias para: '
     TabOrder = 0
-    ExplicitWidth = 436
-    ExplicitHeight = 264
+    ExplicitWidth = 428
+    ExplicitHeight = 314
     object dxWheelDataInicio: TdxDateTimeWheelPicker
       Left = 16
       Top = 69
@@ -44,14 +45,14 @@ object FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias
       Height = 160
       Width = 200
     end
-    object cxButton1: TcxButton
+    object cxBtnAdicionarPeriodo: TcxButton
       Left = 304
       Top = 275
       Width = 118
       Height = 25
       Caption = 'Adicionar per'#237'odo'
       TabOrder = 2
-      OnClick = cxButton1Click
+      OnClick = cxBtnAdicionarPeriodoClick
     end
     object dtPickerDataInicio: TDateTimePicker
       Left = 16

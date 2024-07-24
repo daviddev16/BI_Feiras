@@ -11,7 +11,9 @@ uses
 
   FireDAC.Stan.Error,
 
-  uBaseMigracaoBD;
+  uBaseMigracaoBD,
+
+  Vcl.Dialogs;
 
 type
   MigracoesControleFerias = class(TBaseMigracaoBD)
@@ -22,14 +24,12 @@ type
       function Desinstalar(): Boolean; override;
 
       procedure InternoInstalarCbPeriodos(SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
-      procedure InternoInstalarCbProjeto(SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
-      procedure InternoInstalarProjetos(SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
-      procedure InternoInstalarPessoas(SQLDDL: TStringList; const NomeEsquema: String);
-
+      procedure InternoInstalarCbProjeto( SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
+      procedure InternoInstalarProjetos(  SQLDDL: TStringList; const NomeEsquema, NovoOwner: String);
+      procedure InternoInstalarPessoas(   SQLDDL: TStringList; const NomeEsquema: String);
   end;
 
 implementation
-
 
 function MigracoesControleFerias.VerificarNecessidade: Boolean;
 begin
@@ -152,7 +152,14 @@ begin
 
   with SQLDDL do
   begin
-    Add('UPDATE ' + NomeEsquemaTabela + ' SET vldiasprevistos = ''30'' WHERE stativo = ''S'' AND stvendedor = True;');
+    Add('UPDATE ');
+    Add(NomeEsquemaTabela + ' ');
+    Add('SET');
+    Add(' vldiasprevistos = ''30'' ');
+    Add('WHERE');
+    Add('  stativo = ''S''');
+    Add('  AND vldiasprevistos IS NULL');
+    Add('  AND stvendedor = True;');
   end;
 
   InstalarTabela(SQLDDL);
@@ -164,9 +171,9 @@ var
   NomeEsquema: String;
   NovoOwner: String;
 begin
-  NovoOwner         := ObterSchemaOwner;
-  NomeEsquema       := DacConnection.Params.Values['SearchPath'];
-  SQLDDL            := TStringList.Create;
+  NovoOwner   := ObterSchemaOwner;
+  NomeEsquema := DacConnection.Params.Values['SearchPath'];
+  SQLDDL      := TStringList.Create;
   try
     InternoInstalarCbPeriodos(SQLDDL, NomeEsquema, NovoOwner);
     InternoInstalarCbProjeto (SQLDDL, NomeEsquema, NovoOwner);

@@ -1,9 +1,6 @@
 ﻿[dxSkinController1]
 Coordinates=189,1,116,36
 
-[cxButton1]
-Coordinates=10,78,72,58
-
 [GroupBox1]
 Coordinates=256,10,79,58
 
@@ -33,4 +30,7 @@ ExplicitSubNodes=
 
 [dtPickerDataFinal]
 Coordinates=133,10,113,58
+
+[cxBtnAdicionarPeriodo]
+Coordinates=10,78,72,58
 

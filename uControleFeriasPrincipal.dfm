@@ -1,7 +1,6 @@
 object ControleFeriasPrincipal: TControleFeriasPrincipal
   Left = 0
   Top = 208
-  BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'BI F'#233'rias'
   ClientHeight = 804
   ClientWidth = 1253
@@ -544,18 +543,16 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
     000000000000000000000000000000000000000000000000000000000000}
   Position = poMainFormCenter
   OnCreate = FormCreate
-  OnResize = FormResize
   TextHeight = 15
   object Splitter1: TSplitter
-    Left = 785
+    Left = 825
     Top = 126
     Width = 6
     Height = 655
     AutoSnap = False
     MinSize = 50
-    OnCanResize = Splitter1CanResize
-    OnMoved = Splitter1Moved
-    ExplicitLeft = 802
+    ResizeStyle = rsLine
+    ExplicitLeft = 841
     ExplicitTop = 120
   end
   object dxRibbon1: TdxRibbon
@@ -581,12 +578,11 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
       Caption = 'In'#237'cio'
       Groups = <
         item
-          Caption = 'Cadastros'
-          ToolbarName = 'dxBarMgrCadastros'
-        end
-        item
           Caption = 'Gerenciamento de f'#233'rias'
           ToolbarName = 'dxBarMgrFerias'
+        end
+        item
+          ToolbarName = 'dxBarManager1Bar1'
         end>
       Index = 0
     end
@@ -615,18 +611,18 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
   object dxPanel1: TdxPanel
     Left = 0
     Top = 126
-    Width = 785
+    Width = 825
     Height = 655
     Align = alLeft
     TabOrder = 2
     ExplicitHeight = 654
     DesignSize = (
-      783
+      823
       653)
     object cxGridPrincipal: TcxGrid
       Left = 191
       Top = 5
-      Width = 587
+      Width = 627
       Height = 644
       Align = alCustom
       Anchors = [akLeft, akTop, akRight, akBottom]
@@ -636,12 +632,7 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
         Navigator.Buttons.CustomButtons = <>
         ScrollbarAnnotations.CustomAnnotations = <>
         OnCellClick = cxGridPrincipalDBTableViewCellClick
-        DataController.Summary.DefaultGroupSummaryItems = <
-          item
-            Format = 'Per'#237'odos = #0'
-            Kind = skCount
-            Column = tblPrinColunaCdNome
-          end>
+        DataController.Summary.DefaultGroupSummaryItems = <>
         DataController.Summary.FooterSummaryItems = <>
         DataController.Summary.SummaryGroups = <>
         OptionsCustomize.ColumnExpressionEditing = True
@@ -703,11 +694,11 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           Width = 108
         end
         object tblPrinColunaUsuarioVinculado: TcxGridDBColumn
-          Caption = 'Usu'#225'rio Vinculado'
+          Caption = 'Nome Usu'#225'rio'
           DataBinding.FieldName = 'nmusuario'
           DataBinding.IsNullValueType = True
           HeaderAlignmentHorz = taCenter
-          Width = 110
+          Width = 83
         end
         object tblPrinColunaIdPessoa: TcxGridDBColumn
           Caption = 'Identificador (Pessoa)'
@@ -730,6 +721,12 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           HeaderAlignmentHorz = taCenter
           Width = 86
         end
+        object tblPrinColunaLsCar: TcxGridDBColumn
+          Caption = 'Caracter'#237'sticas'
+          DataBinding.FieldName = 'dscaracteristicas'
+          DataBinding.IsNullValueType = True
+          Width = 144
+        end
       end
       object cxGridPrincipalLevel: TcxGridLevel
         GridView = cxGridPrincipalDBTableView
@@ -743,22 +740,6 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
       Anchors = [akLeft, akTop, akBottom]
       TabOrder = 1
       ExplicitHeight = 644
-      DesignSize = (
-        180
-        643)
-      object SpeedButton1: TSpeedButton
-        Left = 154
-        Top = 3
-        Width = 23
-        Height = 22
-        Cursor = crHandPoint
-        Anchors = [akTop, akRight]
-        ImageIndex = 4
-        Images = cxImageList
-        Flat = True
-        StyleElements = []
-        OnClick = SpeedButton1Click
-      end
       object pnConteudoOpcoes: TPanel
         Left = 0
         Top = 31
@@ -776,12 +757,12 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           Left = 3
           Top = 0
           Anchors = [akLeft, akTop, akRight]
-          Caption = 'Filtros'
+          Caption = 'Filtros e Outros'
           TabOrder = 0
           DesignSize = (
             174
-            321)
-          Height = 325
+            421)
+          Height = 425
           Width = 174
           object cxLabel1: TcxLabel
             Left = 8
@@ -798,7 +779,7 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           end
           object cxBtnProcessar: TcxButton
             Left = 96
-            Top = 292
+            Top = 391
             Width = 75
             Height = 25
             Caption = 'Processar'
@@ -823,6 +804,8 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
               Height = 19
               Anchors = [akLeft, akTop, akRight]
               Caption = 'Ver na grade principal'
+              Checked = True
+              State = cbChecked
               TabOrder = 0
               WordWrap = True
             end
@@ -840,10 +823,10 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
             end
           end
           object gpBxOutros: TGroupBox
-            Left = 13
+            Left = 8
             Top = 159
             Width = 158
-            Height = 127
+            Height = 226
             Caption = 'Outros'
             TabOrder = 4
             object chBxEsconderVendedoresPeriodoCompleto: TCheckBox
@@ -855,6 +838,26 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
                 'N'#227'o mostrar vendedores com per'#237'odo de f'#233'rias completo na grade d' +
                 'e preenchimento'
               TabOrder = 0
+              WordWrap = True
+            end
+            object chBxAutoExpandirGrupos: TCheckBox
+              Left = 9
+              Top = 102
+              Width = 146
+              Height = 60
+              Caption = 'Expandir grupos automaticamente ao processar'
+              Checked = True
+              State = cbChecked
+              TabOrder = 1
+              WordWrap = True
+            end
+            object chBxNaoResumirCrc: TCheckBox
+              Left = 9
+              Top = 156
+              Width = 146
+              Height = 60
+              Caption = 'N'#227'o resumir caracter'#237'sticas na grade'
+              TabOrder = 2
               WordWrap = True
             end
           end
@@ -876,49 +879,49 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
     end
   end
   object dxPanel2: TdxPanel
-    Left = 791
+    Left = 831
     Top = 126
-    Width = 462
+    Width = 422
     Height = 655
     Align = alClient
     TabOrder = 3
-    ExplicitWidth = 458
+    ExplicitWidth = 418
     ExplicitHeight = 654
     DesignSize = (
-      460
+      420
       653)
     object cxPageCtrlPrincipal: TcxPageControl
       Left = 5
       Top = 5
-      Width = 452
+      Width = 412
       Height = 645
       Anchors = [akLeft, akTop, akRight, akBottom]
       TabOrder = 0
       Properties.ActivePage = cxTabFeriasPreenchidas
       Properties.CustomButtons.Buttons = <>
       OnClick = cxPageCtrlPrincipalClick
-      ExplicitWidth = 448
+      ExplicitWidth = 408
       ExplicitHeight = 644
       ClientRectBottom = 639
       ClientRectLeft = 2
-      ClientRectRight = 446
+      ClientRectRight = 406
       ClientRectTop = 29
       object cxTabFeriasPreenchidas: TcxTabSheet
         Caption = 'F'#233'rias Preenchidas'
         ImageIndex = 0
-        ExplicitWidth = 440
+        ExplicitWidth = 400
         ExplicitHeight = 609
         DesignSize = (
-          444
+          404
           610)
         object cxGridPreenchimento: TcxGrid
           Left = 3
           Top = 3
-          Width = 438
+          Width = 398
           Height = 604
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 434
+          ExplicitWidth = 394
           ExplicitHeight = 603
           object cxGridPreenchimentoDBTableView: TcxGridDBTableView
             Navigator.Buttons.CustomButtons = <>
@@ -974,7 +977,7 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
               DataBinding.IsNullValueType = True
               HeaderAlignmentHorz = taCenter
               Options.AutoWidthSizable = False
-              Width = 93
+              Width = 76
             end
             object tblPreencColunaNmPessoa: TcxGridDBColumn
               Caption = 'Nome'
@@ -1013,16 +1016,17 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
         Caption = 'Verifica'#231#227'o de Conflitos'
         ImageIndex = 1
         DesignSize = (
-          444
+          404
           610)
         object cxGridConflitos: TcxGrid
           Left = 3
           Top = 39
-          Width = 438
+          Width = 398
           Height = 568
           Align = alCustom
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
+          ExplicitWidth = 438
           object cxGridConflitosDBTableView: TcxGridDBTableView
             Navigator.Buttons.CustomButtons = <>
             ScrollbarAnnotations.CustomAnnotations = <>
@@ -1124,7 +1128,7 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
         object dxPanel4: TdxPanel
           Left = 3
           Top = 3
-          Width = 438
+          Width = 398
           Height = 31
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 1
@@ -1155,30 +1159,10 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
     Left = 1056
     Top = 8
     PixelsPerInch = 96
-    object dxBarMgrCadastros: TdxBar
-      Caption = 'Custom 1'
-      CaptionButtons = <>
-      DockedLeft = 0
-      DockedTop = 0
-      FloatLeft = 1220
-      FloatTop = 2
-      FloatClientWidth = 0
-      FloatClientHeight = 0
-      ItemLinks = <
-        item
-          Visible = True
-          ItemName = 'dxBarBtnCadastroProjeto'
-        end>
-      OneOnRow = False
-      Row = 0
-      UseOwnFont = False
-      Visible = True
-      WholeRow = False
-    end
     object dxBarMgrFerias: TdxBar
       Caption = 'Custom 2'
       CaptionButtons = <>
-      DockedLeft = 81
+      DockedLeft = 0
       DockedTop = 0
       FloatLeft = 1265
       FloatTop = 2
@@ -1187,7 +1171,27 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
       ItemLinks = <
         item
           Visible = True
-          ItemName = 'dxBarLargeButton1'
+          ItemName = 'dxBarBtnCadastroFerias'
+        end
+        item
+          Visible = True
+          ItemName = 'dxBarBtnVendedores'
+        end
+        item
+          Visible = True
+          ItemName = 'dxBarBtnCaracteristicas'
+        end
+        item
+          Visible = True
+          ItemName = 'dxBarBtnExcluirPeriodoSelec'
+        end
+        item
+          Visible = True
+          ItemName = 'dxBarBtnExcluirTodosPeriodos'
+        end
+        item
+          Visible = True
+          ItemName = 'dxBarBtnEditarDiasPrevistos'
         end>
       OneOnRow = False
       Row = 0
@@ -1195,10 +1199,30 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
       Visible = True
       WholeRow = False
     end
-    object dxBarLargeButton1: TdxBarLargeButton
-      Caption = 'Cadastrar Per'#237'odo de F'#233'rias para Vendedor'
+    object dxBarManager1Bar1: TdxBar
+      Caption = 'Outros'
+      CaptionButtons = <>
+      DockedLeft = 564
+      DockedTop = 0
+      FloatLeft = 1059
+      FloatTop = 2
+      FloatClientWidth = 0
+      FloatClientHeight = 0
+      ItemLinks = <
+        item
+          Visible = True
+          ItemName = 'dxBarBtnSair'
+        end>
+      OneOnRow = False
+      Row = 0
+      UseOwnFont = False
+      Visible = True
+      WholeRow = False
+    end
+    object dxBarBtnCadastroFerias: TdxBarLargeButton
+      Caption = 'Cadastro de f'#233'rias'
       Category = 0
-      Hint = 'Cadastrar Per'#237'odo de F'#233'rias para Vendedor'
+      Hint = 'Cadastro de f'#233'rias'
       Visible = ivAlways
       LargeGlyph.SourceDPI = 96
       LargeGlyph.Data = {
@@ -1236,7 +1260,7 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
         0C3AF5924E2743720F1AE0B544B80729C6C083E131A009925BED2FA143477028
         2E2A35044399FAA6815417E6B5068B1A29760FAF25D548C9063643B401F10F2E
         295504DB6A7F410000000049454E44AE426082}
-      OnClick = dxBarLargeButton1Click
+      OnClick = dxBarBtnCadastroFeriasClick
     end
     object dxBarBtnCadastroProjeto: TdxBarLargeButton
       Caption = 'Cadastrar Projetos'
@@ -1279,6 +1303,195 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
         62A010FBE072D2FF12BA8BBBA8E36F0C6D6BFBF1FB83820000000049454E44AE
         426082}
       OnClick = dxBarBtnCadastroProjetoClick
+    end
+    object dxBarBtnVendedores: TdxBarLargeButton
+      Caption = 'Vendedores (Shop)'
+      Category = 0
+      Hint = 'Vendedores (Shop)'
+      Visible = ivAlways
+      LargeGlyph.SourceDPI = 96
+      LargeGlyph.Data = {
+        89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+        F4000000097048597300000B1300000B1301009A9C180000049849444154789C
+        ED96ED4F5A571CC759B2646A2F97CB1514575B9C4FACF5A974AB4D4393EDD596
+        34B39DB6A8F850DA3F604B96654FDD16D3B88E58014151449DD68AD6E9AC7675
+        BA02DA2C4D93BEABCBB24D79BAA01515155FAC2F6A62FA5BCEA52072AF489665
+        6FE62FF924E49E73F87C0FBF7B0F97C3D9AFFDFA07553CB1864B6D1BAD859680
+        AF6062CD9777D76F908CAD7239FF551DB76E4C1459025030B90679E3AB70E48E
+        1F726FAF5838002FFD6B9274CD7C629AD123131A3D32F43974BD686A3D2F5A2E
+        B9BD0239C3CB9073CB7724FC05F2A1444C3928C3946659BA7C28BC3EAE4A35B9
+        4FA69A3CDE94360A042D6E20754E0FAE7115A3B142CBFABB6CF2AC411F64F42D
+        BE83E6702F0F9CE45E1AF0E24A33F06A7B8157DDED21159DC571EF3C3552AE77
+        01A17502576DF770EAA8847CDB726ADEB87F335A2E362F6E66DE5C4A413B8F94
+        13D5DDC0AFEA04B2A2DD2356F624EC1920CDE43D1D2DC7D50EC01AEC90706D56
+        86E648EEAC7E2C19597E1EDEB9F9C9F34337173E4263D8E5FED30C79653B2497
+        B782B0BC995E1FB384468F8C4D9EA4B243C2B78E53A17959C34B6F670DFA7462
+        F3135D7AEFFC5BA1EBA8E76C7281BC1952E44DA7E26A01A9737AA2E589F57314
+        6AC19EEBE54389A8E7D172C1790D2556D6EDDD0254E886433D8F94BF7C75F604
+        1ACB9E8057DE980E7C28B5051E1D9FDA788A38660D3C925A031FA0313407DD70
+        A8E79172516923BD3EFEAAA31250CFE9BEBFD879916DEDA0D4BA3123B56D80D4
+        1600A935C8318405B1FE18CD4173D10D877A2E2CD3CAE2DE7964A5995C874546
+        EA0C8DE17731DA9DD4BA3EB32D0B52740FB11EA66072ED319A4B5499C5DC4BFD
+        6710FCDADEC39C784B649A3F21EAA01E88DA29483552403F11EA191077FCE68D
+        9615FE1CC1641074461CBC7ACFCBADEA025C3900F41371B10FF09A1B0FF0DADE
+        3763CA5F3579CF8A3A3CCF22E5428313C8FA872019F2B2CA0A26B6C9FF294876
+        F71F80C90D805FECA3E5F45351730388EA9E6784A2B364D79F3CCD443DDD216F
+        7583A0D90144DD2F903FBEC22A0B814EC61047477D809DD7064FC190BCA607F8
+        D5DF0151D5F517BFA2FB10CB4F4F3533E4063724EB1D407C7D7F5759DEDD2047
+        113F86F00356A6065E4DF70E39BFAA0B484507F015263D3340BBDBC590B7B821
+        B9C90EBCAFEEC794A16339CC981F5E1FF303567A1D08B4E32839A93001BFB2DD
+        C10890D2466D32E47A17905A3BE05F4EC79485195DA1918CAE00F7FD063A40B4
+        9C3E9C2A5A37D9020043AE73015F3307DC2BD33165E84F2944EE481014009D86
+        4C791B0A008C00423679931308F51C605F4CC794E58E2C43EE0F41725E809F53
+        019F1633E582F2166600019B5CEB045EE31C609F4FC594D12F23C3CB903DBC04
+        D94341F0B32A5ACA2647C7332340329B5CE304FCFA2C1CF86C2AA60C91F57D04
+        834BC02BB90664A591552EBCA06709A06791AB1DC06D9885039FDA62CAD03B41
+        26E2D636BC926F80A4C54CB9F042133300D9E4DC62C81B1DC055FD09499FD868
+        C96EB2D71003211621C3BC00BCF7EA21B9DCC02A179669B6180108ADB383D038
+        B676C81BEC80A96621E9CA4310E97E85CC8145A6AC3F02F32264F42D405A9D15
+        F8E754740036B9B054636204D8AFFF6DFD0D3AE0F9D74613D058000000004945
+        4E44AE426082}
+      OnClick = dxBarBtnVendedoresClick
+    end
+    object dxBarBtnCaracteristicas: TdxBarLargeButton
+      Caption = 'Caracter'#237'sticas (Shop)'
+      Category = 0
+      Hint = 'Caracter'#237'sticas (Shop)'
+      Visible = ivAlways
+      LargeGlyph.SourceDPI = 96
+      LargeGlyph.Data = {
+        89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+        F4000000097048597300000B1300000B1301009A9C18000001DE49444154789C
+        ED97B14B1C5110C65F484C6C13D05421A077338B2829C44208A449AB9D6D4A49
+        97C222A529530936C2636613B0DCB037A3461B09128B40FE808444D3581A500B
+        0BC1A0277778B0B9BDB76F37AE4AE43E78CDF2DECC6FDEBCF9608DE9EA7F1583
+        7C48AEAB0740AD275717C0DCA81630EA24A3CCD150F4E0A200169603465D2594
+        895CC92313DD66D4EFCDC020FB0CF2FAFDE38DDEA2000D78069967903FE77B7E
+        CD57D6EE790118F5657B7006D909ABFAA26EEAB77C0076D4F630EA2B423D68DF
+        4328337900365300AD00A05F38A88DBB001AAD23902DD7790689BD0076D4F650
+        20D38CBAEB0EA42B1DBEAF6624DE665C9A3245B430F2F13EA1BE2594236760DF
+        023D249437B97AEFD2BB417944A88B84725A20F949F3CCF0D24353962C2C8F11
+        CA677F72F91456E327A5254ECE33A1AEE5A8FE6B08B5A7A62C517A9EF3F67FC5
+        566A83FF9CD866CC7301886306B56125EA2B943CACEA7342F996D5E7B4C9643C
+        54D0BD86A3E6734290D86D444D9399741A51501B6F9A95FB5636BD008432D3A1
+        BA83F60A3A0124624C34BC3F152790692F403414DD65D09FC9795E1888FB5337
+        950190745442FD7D7E7B3F669F6DDCF102B42A2094750EE261E3900FE0AF2942
+        996BB5AE34714E804B137701F0BA5B00D7FC63D295294967CA43D014864BB948
+        0000000049454E44AE426082}
+      OnClick = dxBarBtnCaracteristicasClick
+    end
+    object dxBarBtnExcluirPeriodoSelec: TdxBarLargeButton
+      Caption = 'Excluir Per'#237'odo Selecionado'
+      Category = 0
+      Hint = 'Excluir Per'#237'odo Selecionado'
+      Visible = ivAlways
+      LargeGlyph.SourceDPI = 96
+      LargeGlyph.Data = {
+        89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+        F4000000097048597300000B1300000B1301009A9C180000028849444154789C
+        ED955B53DA401CC5F319708C925604A24161A0521528229A81810D9270510B83
+        4E3F84BEB51FB378E152A50C2A2A17E36DB34FDB8916671A6E09E0533933BF97
+        EC3967FFB9EC8420C61AAB87A46FBBC2D3FEB69B18507256DAFFCA0F147ECE24
+        0FE15E123FEF25909489C7B4E6A54C9C7BCE24E06B47F287A6F0433A76F8948E
+        E1168F69013DA578D5433CA6E2DC632A06FFE94809EA86109351FE6187C74AEE
+        777849DCE6A37DF3DB7C54F676EA509327C404F088710EDD2722588998884862
+        9CEB5A22AFC99E8ED938874421A2EE7BBAE343A02984E19D10C64A9A7C083584
+        B0308A4C4FD52301D0DC0AC2E656102B694402A8B1151406F16A1B22B401EA80
+        8575C06225B5F026BA0DB3821A0F318C6E02BE682DB02ED5827EDC867CBDC79A
+        9C2546A1EB0D1FB861D7E00DEBC36AB8DEF4A15BD63BDC9D2B75BDE101D5750F
+        ACFABFE03EA0AADF3DDACD5BBAF4AD822BEF2ABC5A73E12EA0AAF79D369775E9
+        71820BD76778E15EC65D4015F7CAFB0C505E7582CAF227585959C27D409515E7
+        6887283B1DA0BC648765A71DAB04FD76DA473344C9618B961C36A9E4B0E10E48
+        7DD6863B86E78B0C77665D80E7D605DCC6A2059D592DC2B995013D3D8B8CE65F
+        F98B8A0CC3152DF3F097651EB7C1CCA1330BFDF6880B0C0D7A790B0CAD6D88A2
+        D9CC15E6CCB03867C66DD02654A08D6DEFB740D3A07746E510F9D9594FDE6840
+        79D32C5692331AA4BCC9D0F5BDCA6BAF9EF6ACDC99331AFBFF8EF333149F337C
+        C44A4E673E487903D5F7A3923DB2B753879AFC8B8E29EAE084A2F01B7A3D3AA1
+        28D5C7EA747A1A1CEBF550D1F19DD0A22C491E1C4D4DE12392445992D47CA6B3
+        9393204B92F06F87B6CD5BFA3931C167753A1731A08E743AB7DC31687EACFF43
+        7F00443CBFA16245044E0000000049454E44AE426082}
+      OnClick = dxBarBtnExcluirPeriodoSelecClick
+    end
+    object dxBarBtnEditarDiasPrevistos: TdxBarLargeButton
+      Caption = 'Editar Dias Previstos do Vendedor Selecionado'
+      Category = 0
+      Hint = 'Editar Dias Previstos do Vendedor Selecionado'
+      Visible = ivAlways
+      LargeGlyph.SourceDPI = 96
+      LargeGlyph.Data = {
+        89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+        F4000000097048597300000B1300000B1301009A9C180000019149444154789C
+        ED973B4EC3401040B78243D05372114074884390941C818A4F4F052505E20291
+        90900841291C1414840D4ABC2B22F2214EE2CFEEB81958071B2304388ABDA6C8
+        4AD3CE7B33636B7708F9383AE222137E910AA8500E0E133EA61932E724B75F90
+        2C123FD4759728F76B69437F96F135C98C2A57098F4B049D906D570D8F496C13
+        C6E126370101D78472B0F3EB00D8242F7818642EC0526A659303965E6DAC8E5D
+        F5236872C093B6857B660FF7CD1E5E5A8E5A01CDF6F090F603011907B48F2657
+        20607802778C17BC7744D0FA50E2B86D65DF01C303DCAC535C2EEBB85A6B61C3
+        E1581D7B01FCC9836C058C183C8C5062DA5C240DB88C35150246CAF0A904B280
+        2716C80A9E5860B7D9FD065FBF3583DF6F16786281AD3A4BBDF2C4022D0EB852
+        798CE01BB549E5179683A79DE1AF71DE1DA1C961368186C3B1F8D0C6A3E7015E
+        0D3F2F9AD2C0FE53E0AC330CEE899947C0320C3217A0393E4A1987D17F7896FB
+        855C17137DB29A6939C0B53BC485F872AA4CE2CB721A1E69235B22E792C58729
+        73520165C9882A7F07BF01D552D26C300DA5E80000000049454E44AE426082}
+      OnClick = dxBarBtnEditarDiasPrevistosClick
+    end
+    object dxBarBtnSair: TdxBarLargeButton
+      Caption = 'Sair'
+      Category = 0
+      Hint = 'Sair'
+      Visible = ivAlways
+      LargeGlyph.SourceDPI = 96
+      LargeGlyph.Data = {
+        89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+        F4000000097048597300000B1300000B1301009A9C180000011849444154789C
+        6360180538C04E7157B15D12EE417B253C4229C12033406631900A764B78DCD8
+        23E9F19F2A58C2E33AC90ED8432DCBA178D4010CA351402AD84361A2DB21E1F6
+        7F8B84EBFF5D92EE039308374AB8FCDFA213F27FB3920FD8117477C07A71E7FF
+        F70A27FF7FDBB5F2FF66655FEA3A60B7A4FBFF9D0430C801F78B26FFFFB560EF
+        FF77DDABFE7F9DB34B8A2A0ED82DE9FE7F8384CBFFD5E24E78F12A7147B80320
+        78CF8DFF8B0F4A52EC809D92EE600B3EF4AD45329C687CF5FFEC3DE25471C02F
+        D22D87E0F97BCF0D0F077C18A828D83DD089700F99D99024CB077D41B487C8A2
+        78B376F0FF4D8ADE035314EF18E8CA680F1A1E7500C36814900AF648785CA75E
+        2274BF36A05DB36D121EA2243B8061A4000007F1FE5549C04794000000004945
+        4E44AE426082}
+      OnClick = dxBarBtnSairClick
+    end
+    object dxBarBtnExcluirTodosPeriodos: TdxBarLargeButton
+      Caption = 'Excluir todos os Per'#237'odos'
+      Category = 0
+      Hint = 'Excluir todos os Per'#237'odos'
+      Visible = ivAlways
+      LargeGlyph.SourceDPI = 96
+      LargeGlyph.Data = {
+        89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+        F4000000097048597300000B1300000B1301009A9C180000030449444154789C
+        ED925B4814611886FFDD999DA1482C8CAE0285AEBA0D828ADC9136B08B6A6782
+        BDAABB0833BA0B2AA2B34441121DF090AD2249990A1E76672CDD6867F0B22888
+        A0C22442C703986869E9FCB3FBC6ACAEB8479D4DEF7CE163F877FF9FE77DBFEF
+        23645DEB4A527088FA033A9DECD2A997AC82F64A3DDB0449FE2888F29820CA27
+        967D10D0E96450371118A275D6B9E33B360787686D4037F6E762C02DCA6D82A4
+        60A126967DD0A553AF05EF184151EC3C480F5886823AADB10B1724D9B7040EB7
+        A8846C2700E0B04C8406906F0B7E38B0D52D29A34B0D9478BB3DB6E0AD63D814
+        D469A93C8C42BBC605496949482F291F0881C32EFC4B6C1F743A1B18368495BE
+        2D1165EF52F87CC93E5B09823A2D9D9FFD420D51FF4ADE79C4F682E4D60BA232
+        E0F3B532B60CC8C328B4922F317136DDBD3DBED60DC55EF9A45B526E5BC9DDA2
+        D29C925EEC2E27B92838484BACE416BC1560D2C1DDA2FC36096824CD7ED4BA47
+        D64282A4F85367BDD8F6B9050397D6043E5DC55407CE1DECF7885D4616135141
+        94EFD8DAFEE5041087D1C034CD5C2198B94C3055E1322A4F977FCB684252502C
+        C965643584305F04957B15EDE1F0A7C2113310AF918AFCA9B2E3953F327442FB
+        3FB0CAEE86C65543E367A1F1B02A1AE2603C6531F78441BC1BD6F7D3D51DBAE8
+        6B9A485C44F9B53DA0C6DFB09242E554A8FCCF383453197E26A11BD3D71CD197
+        E7DDFD9E639DB3398D009A6B1734DECC0A7E9378363B5C30EA19FCBDEB5C34F2
+        EB266B3C3C73EAFDBEA39D79369B4EAC2EDCCA048F76BA10EDE6D2FF97B41FB3
+        8F9816DB704B78475CE673E66BA49945E4050BEB6B363230EB9C88CAAEAC23B1
+        F6833E633157C78CE331D94872159AC8765AE3FC6D563960D63B116D67817006
+        70284D4754EE48CEF0B8D047B640E3FA3226567944DAD858EAA4DF9BC96A0961
+        C242E3AF43E5238B6DEEE510696161D63A53F741E58611CA2B5835037141E6BC
+        6683739CDE27A09524B60FE84D491E41983F44D64A0061228D8E07910EF673FA
+        917017D60C9E2CA8DC4E68DC45A85C0F346E042A7F2FE5D2BAD645B2EB1FD90D
+        11849BFA74C80000000049454E44AE426082}
+      OnClick = dxBarBtnExcluirTodosPeriodosClick
     end
   end
   object dxBarApplicationMenu1: TdxBarApplicationMenu
