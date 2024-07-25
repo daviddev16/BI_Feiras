@@ -103,7 +103,7 @@ uses
   cxImageList,
   dxGDIPlusClasses,
   dxSkinOffice2010Blue,
-  cxMemo, cxCalendar;
+  cxMemo, cxCalendar, Vcl.ComCtrls, cxDateUtils;
 
 type
   EStatusAndamentoFerias = (ZERADO, ANDAMENTO, FINALIZADO);
@@ -187,6 +187,11 @@ type
     dxBarManager1Bar1: TdxBar;
     dxBarBtnExcluirTodosPeriodos: TdxBarLargeButton;
     chBxNaoResumirCrc: TCheckBox;
+    cxDtEdtInicio: TcxDateEdit;
+    cxLabel2: TcxLabel;
+    cxDtEdtFinal: TcxDateEdit;
+    cxLabel3: TcxLabel;
+    cxBtnLimpar: TcxButton;
     procedure FormCreate(Sender: TObject);
     procedure cxGridPreenchimentoDBTableViewCustomDrawCell(
       Sender: TcxCustomGridTableView; ACanvas: TcxCanvas;
@@ -213,6 +218,7 @@ type
     procedure dxBarBtnEditarDiasPrevistosClick(Sender: TObject);
     procedure dxBarBtnSairClick(Sender: TObject);
     procedure dxBarBtnExcluirTodosPeriodosClick(Sender: TObject);
+    procedure cxBtnLimparClick(Sender: TObject);
     
   private
     { Private declarations }
@@ -313,6 +319,12 @@ begin
   finally
     GenMigracaoBD.Free;
   end;
+end;
+
+procedure TControleFeriasPrincipal.cxBtnLimparClick(Sender: TObject);
+begin
+  cxDtEdtInicio.Clear;
+  cxDtEdtFinal.Clear;
 end;
 
 procedure TControleFeriasPrincipal.cxBtnProcessarClick(Sender: TObject);
@@ -794,6 +806,13 @@ begin
         FdQuery.ParamByName('paramNmPessoa').AsString := cxTxNmVendedor.Text;
       end;
 
+      if TUtilitarios.EhDataValida(cxDtEdtInicio.Date) and TUtilitarios.EhDataValida(cxDtEdtFinal.Date) then
+      begin
+        Add(' AND cbp.dtinicio >= :paramDtInicio AND  cbp.dtfinal <= :paramDtFinal');
+        FdQuery.ParamByName('paramDtInicio').AsDate := cxDtEdtInicio.Date;
+        FdQuery.ParamByName('paramDtFinal').AsDate  := cxDtEdtFinal.Date;
+      end;
+
       Add('ORDER BY');
       Add(' p.nmpessoa');
     end;
@@ -828,14 +847,16 @@ var
   RetornoConfirmacao: Integer;
 begin
   CxRecordSelecionado := ObterPeriodoSelecionadoPrincipal;
+
+    { PROVAVEL QUE SEJA GRUPO SELECIONADO }
+  if not (CxRecordSelecionado.IsData) then
+    Exit;
+
   IdPessoa := CxRecordSelecionado.Values[tblPrinColunaIdPessoa.Index];
   NmPessoa := CxRecordSelecionado.Values[tblPrinColunaCdNome.Index];
   DtInicio := CxRecordSelecionado.Values[tblPrinColunaDtInicio.Index];
   DtFinal  := CxRecordSelecionado.Values[tblPrinColunaDtFinal.Index];
 
-  { PROVAVEL QUE SEJA GRUPO SELECIONADO }
-  if not (CxRecordSelecionado.IsData) then
-    Exit;
 
   if (Trim(IdPessoa) = '') or not
      (TUtilitarios.EhDataValida(DtInicio) and TUtilitarios.EhDataValida(DtFinal))
@@ -894,15 +915,13 @@ var
   NovoVlDiasPrevistos: Integer;
 begin
   CxRecordSelecionado := ObterPeriodoSelecionadoPrincipal;
-  IdPessoa := CxRecordSelecionado.Values[tblPrinColunaIdPessoa.Index];
-  NmPessoa := CxRecordSelecionado.Values[tblPrinColunaCdNome.Index];
 
   { PROVAVEL QUE SEJA GRUPO SELECIONADO }
   if not (CxRecordSelecionado.IsData) then
     Exit;
 
-  if (Trim(IdPessoa) = '')
-    then Exit;
+  IdPessoa := CxRecordSelecionado.Values[tblPrinColunaIdPessoa.Index];
+  NmPessoa := CxRecordSelecionado.Values[tblPrinColunaCdNome.Index];
 
   NovoVlDiasPrevistos := ObterValorNatural('Informe os dias previstos', 30);
 
@@ -992,6 +1011,18 @@ end;
 
 procedure TControleferiasPrincipal.AcaoProcessarFiltros;
 begin
+  if (cxDtEdtFinal.Date < cxDtEdtInicio.Date) then
+  begin
+    TUtilitarios.MensagemAlertaRapido('Data final não pode ser menor que a inicial.');
+    cxDtEdtFinal.Date := cxDtEdtInicio.Date + 30;
+    Exit;
+  end;
+  if (cxDtEdtInicio.Date > cxDtEdtFinal.Date) then
+  begin
+    TUtilitarios.MensagemAlertaRapido('Data inicial não pode ser maior que a final.');
+    cxDtEdtInicio.Date := cxDtEdtFinal.Date - 30;
+    Exit;
+  end;
   CarregarEstadoInicial;
 end;
 

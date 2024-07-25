@@ -3,7 +3,7 @@ object FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias
   Top = 0
   BorderStyle = bsSingle
   Caption = 'Cadastrar Per'#237'odo de F'#233'rias'
-  ClientHeight = 331
+  ClientHeight = 435
   ClientWidth = 460
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,17 +15,17 @@ object FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias
   OnCreate = FormCreate
   DesignSize = (
     460
-    331)
+    435)
   TextHeight = 15
   object GroupBox1: TGroupBox
     Left = 8
     Top = 8
-    Width = 432
-    Height = 315
+    Width = 428
+    Height = 419
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Adicionando per'#237'odo de f'#233'rias para: '
     TabOrder = 0
-    ExplicitWidth = 428
+    ExplicitWidth = 424
     ExplicitHeight = 314
     object dxWheelDataInicio: TdxDateTimeWheelPicker
       Left = 16
@@ -46,8 +46,8 @@ object FrmCadastroPeriodoFerias: TFrmCadastroPeriodoFerias
       Width = 200
     end
     object cxBtnAdicionarPeriodo: TcxButton
-      Left = 304
-      Top = 275
+      Left = 307
+      Top = 391
       Width = 118
       Height = 25
       Caption = 'Adicionar per'#237'odo'

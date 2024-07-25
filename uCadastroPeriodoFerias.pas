@@ -105,6 +105,7 @@ uses
   System.Rtti,
   System.Bindings.Outputs,
   Vcl.Bind.Editors,
+  Math,
   Data.Bind.Components;
 
 type
@@ -137,6 +138,8 @@ type
 
     function ObterValorDiasPrevistos(const IdPessoa: String): Integer;
     function ObterValorFeriasComputadas(const IdPessoa: String): Integer;
+
+    function LimitarData(const Data: TDateTime): TDate;
 
     procedure AtualizarPessoaSelecionada(const NomePessoa, IdPessoa: String);
     procedure InserirPeriodoDeFeriasSelecionado;
@@ -173,7 +176,14 @@ begin
   DtInicio := dxWheelDataInicio.DateTime;
   DtFinal  := dxWheelDataFinal.DateTime;
 
-  { NÃO PERMITIR FERIAS COM MENOS DE UMA SEMANA}
+    if CompareDate(DtInicio, DtFinal) = GreaterThanValue then
+  begin
+    TUtilitarios.MensagemErroRapido(
+      'A data inicial não pode ser maior que a data final.');
+    Exit;
+  end;
+
+  {
   if DaysBetween(DtInicio, DtFinal) < 7 then
   begin
     TUtilitarios.MensagemErroRapido(
@@ -181,16 +191,6 @@ begin
     Exit;
   end;
 
-  {NÃO PERMITIR DATA INICIAL MAIOR QUE A FINAL}
-  if CompareDate(DtInicio, DtFinal) = GreaterThanValue then
-  begin
-    TUtilitarios.MensagemErroRapido(
-      'A data inicial não pode ser maior que a data final.');
-    Exit;
-  end;
-
-
-  { VALIDAR DATA DENTRO DOS DIAS PREVISTOS }
   VlDiasPrevistos     := ObterValorDiasPrevistos(fIdPessoaSelecionado);
   VlFeriasJaComputado := ObterValorFeriasComputadas(fIdPessoaSelecionado);
 
@@ -200,7 +200,7 @@ begin
       'O período informado somado a quantidade de dias já preenchidos ' +
       'para este vendedor, supera seu valor de dias previstos.');
     Exit;
-  end;
+  end; }
 
 
   {VERIFICA SE NÃO COLAPSA COM OS PROPRIOS PERIODOS DO VENDEDOR}
@@ -365,25 +365,37 @@ begin
   end;
 end;
 
+function TFrmCadastroPeriodoFerias.LimitarData(const Data: TDateTime): TDate;
+var
+  DtMaxima: TDate;
+begin
+  DtMaxima := Now + 365;
+  Result   := Min(DtMaxima, Data);
+end;
+
 procedure TFrmCadastroPeriodoFerias.dtPickerDataFinalChange(Sender: TObject);
 begin
-  dxWheelDataFinal.DateTime := dtPickerDataFinal.DateTime;
+  dtPickerDataFinal.DateTime := LimitarData(dtPickerDataFinal.DateTime);
+  dxWheelDataFinal.DateTime  := dtPickerDataFinal.DateTime;
 end;
 
 procedure TFrmCadastroPeriodoFerias.dtPickerDataInicioChange(Sender: TObject);
 begin
+  dtPickerDataInicio.DateTime := LimitarData(dtPickerDataInicio.DateTime);
   dxWheelDataInicio.DateTime := dtPickerDataInicio.DateTime;
 end;
 
 procedure TFrmCadastroPeriodoFerias.dxWheelDataFinalPropertiesChange(
   Sender: TObject);
 begin
+  dxWheelDataFinal.DateTime  := LimitarData(dxWheelDataFinal.DateTime);
   dtPickerDataFinal.DateTime := dxWheelDataFinal.DateTime;
 end;
 
 procedure TFrmCadastroPeriodoFerias.dxWheelDataInicioPropertiesChange(
   Sender: TObject);
 begin
+  dxWheelDataInicio.DateTime  := LimitarData(dxWheelDataInicio.DateTime);
   dtPickerDataInicio.DateTime := dxWheelDataInicio.DateTime;
 end;
 

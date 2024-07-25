@@ -761,8 +761,8 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           TabOrder = 0
           DesignSize = (
             174
-            421)
-          Height = 425
+            605)
+          Height = 609
           Width = 174
           object cxLabel1: TcxLabel
             Left = 8
@@ -778,8 +778,8 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
             Width = 158
           end
           object cxBtnProcessar: TcxButton
-            Left = 96
-            Top = 391
+            Left = 91
+            Top = 506
             Width = 75
             Height = 25
             Caption = 'Processar'
@@ -788,7 +788,7 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           end
           object gpBxSemVend: TGroupBox
             Left = 8
-            Top = 72
+            Top = 177
             Width = 158
             Height = 81
             Anchors = [akLeft, akTop, akRight]
@@ -824,7 +824,7 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           end
           object gpBxOutros: TGroupBox
             Left = 8
-            Top = 159
+            Top = 268
             Width = 158
             Height = 226
             Caption = 'Outros'
@@ -860,6 +860,39 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
               TabOrder = 2
               WordWrap = True
             end
+          end
+          object cxDtEdtInicio: TcxDateEdit
+            Left = 8
+            Top = 91
+            TabOrder = 5
+            Width = 158
+          end
+          object cxLabel2: TcxLabel
+            Left = 8
+            Top = 71
+            Caption = 'Data Inicial:'
+            TabOrder = 6
+          end
+          object cxDtEdtFinal: TcxDateEdit
+            Left = 8
+            Top = 141
+            TabOrder = 7
+            Width = 158
+          end
+          object cxLabel3: TcxLabel
+            Left = 8
+            Top = 120
+            Caption = 'Data Final:'
+            TabOrder = 8
+          end
+          object cxBtnLimpar: TcxButton
+            Left = 10
+            Top = 506
+            Width = 75
+            Height = 25
+            Caption = 'Limpar'
+            TabOrder = 9
+            OnClick = cxBtnLimparClick
           end
         end
       end
@@ -1026,7 +1059,6 @@ object ControleFeriasPrincipal: TControleFeriasPrincipal
           Align = alCustom
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 438
           object cxGridConflitosDBTableView: TcxGridDBTableView
             Navigator.Buttons.CustomButtons = <>
             ScrollbarAnnotations.CustomAnnotations = <>
